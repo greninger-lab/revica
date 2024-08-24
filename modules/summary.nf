@@ -1,7 +1,7 @@
 process SUMMARY {
     tag "${meta.id}_${ref_info.acc}_${ref_info.tag}"
     label 'process_low'
-    container 'greningerlab/revica:ubuntu-20.04'
+    container 'quay.io/jefffurlong/revica:ubuntu-20.04'
 
     input:
     tuple val(meta), val(ref_info), path(fastp_trim_log), path(consensus), path(bam), path(bai)
