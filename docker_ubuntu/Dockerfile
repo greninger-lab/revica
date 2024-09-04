@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM quay.io/nf-core/ubuntu:20.04
 
 ARG SAMTOOLS_VERSION=1.15 
 ARG BCFTOOLS_VERSION=1.15
