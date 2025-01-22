@@ -31,8 +31,9 @@ include { CONSENSUS_ASSEMBLY        } from './subworkflows/consensus_assembly'
 //
 // MODULES
 //
-include { SEQTK_SAMPLE  } from './modules/seqtk_sample'
-include { SUMMARY       } from './modules/summary'
+include { SEQTK_SAMPLE          } from './modules/seqtk_sample'
+include { SUMMARY               } from './modules/summary'
+include { REPORT_FAILED_SAMPLES } from './modules/report_failed_samples'
 
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
@@ -75,10 +76,22 @@ workflow {
         ch_ref_prep_input = FASTQ_TRIM_FASTP_FASTQC.out.reads
     } 
 
+    ch_trim_log = FASTQ_TRIM_FASTP_FASTQC.out.trim_log
+
+    ch_ref_prep_input
+    .join(ch_trim_log, by: [0]) 
+    .set { ch_ref_prep_combined }
+
     REFERENCE_PREP (
-        ch_ref_prep_input,
-        file(params.db)
-    ) 
+        ch_ref_prep_combined,
+        file(params.db),
+    )
+    
+    REFERENCE_PREP
+        .out.failed_assembly_summary
+        .map { meta, path -> path }
+        .collectFile(storeDir: "${params.output}", name: "${params.run_name}_fail_summary.tsv", keepHeader: true, sort: true)
+        .set { run_sum_tsv_fail }
     
     CONSENSUS_ASSEMBLY (
         REFERENCE_PREP.out.reads,
@@ -97,4 +110,11 @@ workflow {
 
     SUMMARY.out.summary
         .collectFile(storeDir: "${params.output}", name:"${params.run_name}_summary.tsv", keepHeader: true, sort: true)
+        .set { run_sum_tsv_pass }
+
+    REPORT_FAILED_SAMPLES (
+        run_sum_tsv_pass,
+        run_sum_tsv_fail
+    )
+
 }

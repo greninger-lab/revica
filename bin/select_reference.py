@@ -5,6 +5,8 @@ import argparse
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Find the accession number associated with the highest bbmap median_fold for each virus species.')
     parser.add_argument('-bbmap_covstats', required=True, type=str, help='bbmap covstats output file')
+    parser.add_argument('-raw_reads', required=True, type=str, help='number of raw reads, used in reports for align-failed samples')
+    parser.add_argument('-trimmed_reads', required=True, type=str, help='number of trimmed reads, used in reports for align-failed samples')
     parser.add_argument('-b', required=True, type=str, help='sample basename')
     parser.add_argument('-m', type=int, default=3, help='minimum median threshold in bbmap covstats output for a reference to be considered. (Default 3)')
     parser.add_argument('-p', type=int, default=70, help='minimum covered percent in bbmap covstats output for a reference to be considered. (Default 70)')
@@ -90,7 +92,10 @@ if __name__ == "__main__":
         for i in ref_best_cov_stats:
             output_text = output_text + str(i) + "\t"
 
-        header = "sample_name\tref_best_cov\taverage_coverage\tcovered_percent\tplus_reads\tminus_reads\tmedian_coverage\treads_distribution"
+        perc_trimmed = round((int(args.raw_reads) - int(args.trimmed_reads)) / int(args.raw_reads) * 100, 2)
+        output_text = output_text + args.raw_reads + "\t" + args.trimmed_reads + "\t" + str(perc_trimmed) + "\t"
+
+        header = "sample_name\tref_best_cov\taverage_coverage\tcovered_percent\tplus_reads\tminus_reads\tmedian_coverage\treads_distribution\traw_reads\ttrimmed_reads\tpct_reads_trimmed"
         output_file.write(header)
         output_file.write('\n')
         output_file.write(output_text)
